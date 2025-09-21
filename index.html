@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TravelGenie - AI-Powered Trip Planner</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:wght@300;400;500&family=Poppins:wght@300;400;500;600&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet">
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #0ea5e9;
+            --accent: #f97316;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --card-bg: #ffffff;
+            --text: #334155;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Roboto', sans-serif;
+        }
+
+        .theme-modern {
+            --primary: #2563eb;
+            --secondary: #0ea5e9;
+            --accent: #f97316;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --card-bg: #ffffff;
+            --text: #334155;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Roboto', sans-serif;
+        }
+
+        .theme-vibrant {
+            --primary: #ec4899;
+            --secondary: #06b6d4;
+            --accent: #fbbf24;
+            --light: #fdf2f8;
+            --dark: #701a75;
+            --card-bg: #ffffff;
+            --text: #581c87;
+            --font-heading: 'Poppins', sans-serif;
+            --font-body: 'Nunito', sans-serif;
+        }
+
+        .theme-cultural {
+            --primary: #b45309;
+            --secondary: #059669;
+            --accent: #dc2626;
+            --light: #fef3c7;
+            --dark: #422006;
+            --card-bg: #fefce8;
+            --text: #422006;
+            --font-heading: 'Baloo 2', cursive;
+            --font-body: 'Hind', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--light) 0%, #e2e8f0 100%);
+            color: var(--text);
+            font-family: var(--font-body);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        header {
+            background: linear-gradient(120deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 4px 12px var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo h1 {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 1.8rem;
+        }
+
+        .logo i {
+            font-size: 2rem;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 25px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            color: var(--accent);
+        }
+
+        .kebab-menu {
+            position: relative;
+        }
+
+        .kebab-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .dropdown {
+            position: absolute;
+            right: 0;
+            top: 40px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow);
+            width: 200px;
+            display: none;
+            z-index: 10;
+        }
+
+        .dropdown.show {
+            display: block;
+        }
+
+        .dropdown a {
+            display: block;
+            padding: 12px 20px;
+            color: var(--dark);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown a:hover {
+            background: var(--light);
+            color: var(--primary);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        .hero h2 {
+            font-family: var(--font-heading);
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 30px;
+            color: var(--text);
+        }
+
+        .theme-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .theme-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .theme-modern-btn {
+            background: #2563eb;
+            color: white;
+        }
+
+        .theme-vibrant-btn {
+            background: #ec4899;
+            color: white;
+        }
+
+        .theme-cultural-btn {
+            background: #b45309;
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .map-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px var(--shadow);
+            height: 500px;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px var(--shadow);
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 18px;
+            margin-bottom: 15px;
+            max-width: 80%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            background: var(--primary);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+
+        .ai-message {
+            background: #e2e8f0;
+            color: var(--dark);
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            font-family: var(--font-body);
+        }
+
+        .chat-input button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input button:hover {
+            background: var(--secondary);
+        }
+
+        /* Features Section */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 50px 0;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px var(--shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .feature-card h3 {
+            color: var(--dark);
+            margin-bottom: 15px;
+            font-family: var(--font-heading);
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(120deg, var(--dark), var(--primary));
+            color: white;
+            padding: 40px 0 20px;
+            margin-top: 60px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .footer-section h3 {
+            font-family: var(--font-heading);
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .footer-section p {
+            margin-bottom: 15px;
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .social-icons a {
+            color: white;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .social-icons a:hover {
+            color: var(--accent);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .map-container, .chat-container {
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            nav ul {
+                display: none;
+            }
+            
+            .hero h2 {
+                font-size: 2rem;
+            }
+            
+            .feature-card {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body class="theme-modern">
+    <!-- Header -->
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <i class="fas fa-compass"></i>
+                <h1>TravelGenie</h1>
+            </div>
+            
+            <nav>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Destinations</a></li>
+                    <li><a href="#">Itineraries</a></li>
+                    <li><a href="#">About</a></li>
+                </ul>
+            </nav>
+            
+            <div class="kebab-menu">
+                <button class="kebab-btn">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div class="dropdown">
+                    <a href="#"><i class="fas fa-user"></i> Login</a>
+                    <a href="#"><i class="fas fa-user-plus"></i> Sign Up</a>
+                    <a href="#"><i class="fas fa-info-circle"></i> About</a>
+                    <a href="#"><i class="fas fa-cog"></i> Settings</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h2>Plan Your Perfect Trip with AI</h2>
+            <p>Let our AI travel assistant create personalized itineraries based on your preferences, budget, and travel style</p>
+            
+            <div class="theme-selector">
+                <button class="theme-btn theme-modern-btn" onclick="setTheme('modern')">Modern</button>
+                <button class="theme-btn theme-vibrant-btn" onclick="setTheme('vibrant')">Vibrant</button>
+                <button class="theme-btn theme-cultural-btn" onclick="setTheme('cultural')">Cultural</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container main-content">
+        <div class="map-container">
+            <h3>Interactive Travel Map</h3>
+            <div id="map"></div>
+        </div>
+        
+        <div class="chat-container">
+            <h3>AI Travel Assistant</h3>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message ai-message">
+                    Hi there! I'm your AI travel assistant. Where would you like to go and what kind of experience are you looking for?
+                </div>
+            </div>
+            
+            <div class="chat-input">
+                <input type="text" id="userInput" placeholder="Ask about destinations, activities, or planning...">
+                <button id="sendButton"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <section class="container">
+        <h2 style="text-align: center; margin-bottom: 30px; font-family: var(--font-heading);">Why Choose TravelGenie?</h2>
+        
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h3>AI-Powered Planning</h3>
+                <p>Our advanced AI analyzes millions of data points to create the perfect itinerary tailored to your preferences.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-map-marked-alt"></i>
+                </div>
+                <h3>Interactive Maps</h3>
+                <p>Visualize your entire trip on our interactive maps with real-time updates and points of interest.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <h3>Budget Optimization</h3>
+                <p>Get the most value for your money with our smart budget allocation and cost-saving recommendations.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>Personalized For You</h3>
+                <p>Whether traveling solo, as a couple, or with family, we customize every aspect of your journey.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <h3>Local Experiences</h3>
+                <p>Discover hidden gems and authentic local experiences that typical tourists often miss.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>Travel With Confidence</h3>
+                <p>Real-time alerts, safety information, and 24/7 support ensure you have a worry-free experience.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>About TravelGenie</h3>
+                    <p>We're revolutionizing travel planning with AI-powered personalized itineraries that help you discover the world your way.</p>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <p><a href="#">Destinations</a></p>
+                    <p><a href="#">Travel Guides</a></p>
+                    <p><a href="#">Blog</a></p>
+                    <p><a href="#">Testimonials</a></p>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Contact Us</h3>
+                    <p><i class="fas fa-envelope"></i> info@travelgenie.com</p>
+                    <p><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
+                    <p><i class="fas fa-map-marker-alt"></i> 123 Travel Street, Wanderlust City</p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2023 TravelGenie. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Theme Switching
+        function setTheme(theme) {
+            document.body.className = 'theme-' + theme;
+        }
+
+        // Kebab Menu Toggle
+        document.querySelector('.kebab-btn').addEventListener('click', function() {
+            document.querySelector('.dropdown').classList.toggle('show');
+        });
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function(e) {
+            if (!e.target.matches('.kebab-btn') && !e.target.matches('.kebab-btn *')) {
+                document.querySelector('.dropdown').classList.remove('show');
+            }
+        });
+
+        // Chat Functionality
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+
+        function addMessage(message, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(isUser ? 'user-message' : 'ai-message');
+            messageDiv.textContent = message;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function handleUserInput() {
+            const message = userInput.value.trim();
+            if (message) {
+                addMessage(message, true);
+                userInput.value = '';
+                
+                // Simulate AI response
+                setTimeout(() => {
+                    let response = "I understand you're interested in planning a trip. I can help you with destination recommendations, itinerary planning, budget estimates, and more. Could you tell me which destination you have in mind?";
+                    
+                    if (message.toLowerCase().includes('goa')) {
+                        response = "Goa is a fantastic choice! Beautiful beaches, Portuguese architecture, and amazing seafood. I'd recommend visiting between November and March for the best weather. Would you like me to create a customized itinerary for Goa?";
+                    } else if (message.toLowerCase().includes('rajasthan')) {
+                        response = "Rajasthan offers a magnificent cultural experience! The palaces, forts, and desert landscapes are breathtaking. I can plan a royal itinerary covering Jaipur, Udaipur, Jodhpur, and Jaisalmer. How many days are you planning for?";
+                    } else if (message.toLowerCase().includes('kerala')) {
+                        response = "Kerala, God's Own Country! Perfect for a serene getaway. I'd suggest a houseboat experience in Alleppey, tea garden visits in Munnar, and relaxing Ayurvedic treatments. What kind of experiences are you most interested in?";
+                    } else if (message.toLowerCase().includes('budget')) {
+                        response = "I can definitely help with budget planning! For a comfortable trip in India, a daily budget of ₹3,000-5,000 per person is reasonable, excluding flights. Would you like me to create a budget-friendly itinerary?";
+                    }
+                    
+                    addMessage(response, false);
+                }, 1000);
+            }
+        }
+
+        sendButton.addEventListener('click', handleUserInput);
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleUserInput();
+            }
+        });
+
+        // Initialize Map (simplified version)
+        function initMap() {
+            // This is a simplified version - in a real implementation, you would use the Google Maps API
+            const mapElement = document.getElementById('map');
+            mapElement.innerHTML = `
+                <div style="width:100%; height:100%; background:#e2e8f0; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#64748b;">
+                    <div style="text-align:center;">
+                        <i class="fas fa-map-marked-alt" style="font-size:3rem; margin-bottom:15px;"></i>
+                        <p>Interactive Map Would Appear Here</p>
+                        <p style="font-size:0.9rem; margin-top:10px;">With Google Maps API integration</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Initialize the map when the page loads
+        window.onload = initMap;
+    </script>
+</body>
+</html>
